@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using AngleSharp;
 using AngleSharp.Html.Parser;
-using CommandLine;
 using FunApp.Data;
 using FunApp.Data.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Sandbox
 {
@@ -50,7 +46,7 @@ namespace Sandbox
         {
             var dbContext = serviceProvider.GetService<FunAppContext>();
             //Console.WriteLine(db.Users.CountAsync().GetAwaiter().GetResult());
-
+            
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             var config = Configuration.Default.WithDefaultLoader();
@@ -62,7 +58,25 @@ namespace Sandbox
 
             for (int i = 3000; i < 3050; i++)
             {
-                var html = webClient.DownloadString($"{address}{i}");
+                string html = null;
+                for (int j = 0; j < 10; j++)
+                {
+                    try
+                    {
+                        html = webClient.DownloadString($"{address}{i}");
+                        break;
+                    }
+                    catch(Exception e)
+                    {
+                        Thread.Sleep(10000);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(html))
+                {
+                    continue;
+                }
+
                 var document = parser.ParseDocument(html);
                 var jokeContent = document.QuerySelector("#newsbody")?.TextContent?.Trim();
                 var categoryName = document.QuerySelector(".tag-links-left a")?.TextContent?.Trim();
