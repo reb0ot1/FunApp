@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-
+using System.Linq;
+using System.Net;
+using System.Text;
+using AngleSharp;
+using AngleSharp.Html.Parser;
 using CommandLine;
 using FunApp.Data;
 using FunApp.Data.Models;
@@ -18,6 +22,7 @@ namespace Sandbox
     {
         public static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
             Console.WriteLine($"{typeof(Program).Namespace} ({string.Join(" ", args)}) starts working...");
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
@@ -43,7 +48,51 @@ namespace Sandbox
 
         private static void SandboxCode(IServiceProvider serviceProvider)
         {
-            var db = serviceProvider.GetService<FunAppContext>();
+            var dbContext = serviceProvider.GetService<FunAppContext>();
+            //Console.WriteLine(db.Users.CountAsync().GetAwaiter().GetResult());
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var config = Configuration.Default.WithDefaultLoader();
+            var parser = new HtmlParser();
+            //var context = BrowsingContext.New(config);
+            var webClient = new WebClient() { Encoding = Encoding.GetEncoding("windows-1251") };
+
+            var address = "http://fun.dir.bg/vic_open.php?id=";
+
+            for (int i = 3000; i < 3050; i++)
+            {
+                var html = webClient.DownloadString($"{address}{i}");
+                var document = parser.ParseDocument(html);
+                var jokeContent = document.QuerySelector("#newsbody")?.TextContent?.Trim();
+                var categoryName = document.QuerySelector(".tag-links-left a")?.TextContent?.Trim();
+
+                if (!string.IsNullOrWhiteSpace(jokeContent) && !string.IsNullOrWhiteSpace(categoryName))
+                {
+                    var category = dbContext.Categories.FirstOrDefault(x => x.Name == categoryName);
+
+                    if (category == null)
+                    {
+                        category = new Category() { Name = categoryName };
+                    }
+
+                    var joke = new Joke()
+                    {
+                        Content = jokeContent,
+                        Category = category,
+                    };
+
+                    dbContext.Jokes.Add(joke);
+                    dbContext.SaveChanges();
+                }
+
+                Console.WriteLine($"{i} => {categoryName}");
+            }
+            
+            
+            //var cellSelector = "tr.vevent td:nth-child(3)";
+            //var cells = document.QuerySelector("");
+            //var titles = cells.Select(m => m.TextContent);
         }
 
         private static void ConfigureServices(ServiceCollection serviceCollection)
