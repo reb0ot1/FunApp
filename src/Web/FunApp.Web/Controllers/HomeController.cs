@@ -7,28 +7,24 @@ using Microsoft.AspNetCore.Mvc;
 using FunApp.Web.Models;
 using FunApp.Data.Common;
 using FunApp.Data.Models;
-using FunApp.Web.Models.Home;
+using FunApp.Services.DataServices;
+using FunApp.Services.Models.Home;
+using Microsoft.AspNetCore.Identity;
 
 namespace FunApp.Web.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
-        private readonly IRepository<Joke> jokesRepository;
+        private readonly IJokeService jokeService;
 
-        public HomeController(IRepository<Joke> jokesRepository)
+        public HomeController(IJokeService js)
         {
-            this.jokesRepository = jokesRepository;
+            this.jokeService = js;
         }
 
         public IActionResult Index()
         {
-            var jokes = jokesRepository
-                .All()
-                .OrderBy(o => Guid.NewGuid())
-                .Select(j => new JokeIndexViewModel {
-                    Content = j.Content,
-                    CategoryName = j.Category.Name
-                });
+            var jokes = this.jokeService.GetRandomJokes(20);
 
             IndexViewModel viewModel = new IndexViewModel()
             {
@@ -40,14 +36,8 @@ namespace FunApp.Web.Controllers
 
         public IActionResult About()
         {
-            ViewData["Message"] = $"My application has {this.jokesRepository.All().Count()} jokes";
-
-            return View();
-        }
-
-        public IActionResult Contact()
-        {
-            ViewData["Message"] = "Your contact page.";
+            var jokesCount = this.jokeService.GetCount();
+            ViewData["Message"] = $"My application has {jokesCount} jokes";
 
             return View();
         }

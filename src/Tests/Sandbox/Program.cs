@@ -35,11 +35,21 @@ namespace Sandbox
             using (var serviceScope = serviceProvider.CreateScope())
             {
                 serviceProvider = serviceScope.ServiceProvider;
-                SandboxCode(serviceProvider);
+                TestMe(serviceProvider);
+                //SandboxCode(serviceProvider);
                 //return Parser.Default.ParseArguments<SandboxOptions>(args).MapResult(
                 //    opts => SandboxCode(opts, serviceProvider),
                 //    _ => 255);
             }
+        }
+
+        private static void TestMe(IServiceProvider serviceProvider)
+        {
+            var dbContext = serviceProvider.GetService<FunAppContext>();
+
+            var joke = dbContext.Jokes.FirstOrDefault(e => e.Id == 208);
+            var cat = dbContext.Categories.FirstOrDefault(e => e.Id == 1);
+            Console.WriteLine(cat.Id);
         }
 
         private static void SandboxCode(IServiceProvider serviceProvider)
@@ -56,7 +66,7 @@ namespace Sandbox
 
             var address = "http://fun.dir.bg/vic_open.php?id=";
 
-            for (int i = 3000; i < 3050; i++)
+            for (int i = 3050; i < 7000; i++)
             {
                 string html = null;
                 for (int j = 0; j < 10; j++)

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace FunApp.Data
         where TEntity : class
     {
         private readonly FunAppContext context;
-        private readonly DbSet<TEntity> dbSet;
+        private DbSet<TEntity> dbSet;
 
         public DbRepository(FunAppContext context)
         {
@@ -24,7 +25,7 @@ namespace FunApp.Data
             return this.dbSet.AddAsync(entity);
         }
 
-        public System.Linq.IQueryable<TEntity> All()
+        public IQueryable<TEntity> All()
         {
             return this.dbSet;
         }

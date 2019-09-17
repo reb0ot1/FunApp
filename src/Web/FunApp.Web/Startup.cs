@@ -15,6 +15,10 @@ using FunApp.Web.Models;
 using FunApp.Data;
 using FunApp.Data.Models;
 using FunApp.Data.Common;
+using FunApp.Services.DataServices;
+using FunApp.Services.Mapping;
+using FunApp.Services.Models.Home;
+using FunApp.Web.Models.Jokes;
 
 namespace FunApp.Web
 {
@@ -30,6 +34,11 @@ namespace FunApp.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            AutoMapperConfig.RegisterMappings(
+                typeof(IndexViewModel).Assembly,
+                typeof(CreateJokeInputModel).Assembly
+                );
+
             services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
@@ -38,7 +47,7 @@ namespace FunApp.Web
             });
 
             services.AddDbContext<FunAppContext>(options =>
-                    options.UseSqlServer(
+                    options.UseLazyLoadingProxies().UseSqlServer(
                         this.Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddDefaultIdentity<FunAppUser>(
@@ -57,6 +66,8 @@ namespace FunApp.Web
             //Application services
 
             services.AddScoped(typeof(IRepository<>), typeof(DbRepository<>));
+            services.AddScoped<IJokeService, JokeService>();
+            services.AddScoped<ICategoryService, CategoryService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -78,7 +89,7 @@ namespace FunApp.Web
             app.UseCookiePolicy();
 
             app.UseAuthentication();
-
+            
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
