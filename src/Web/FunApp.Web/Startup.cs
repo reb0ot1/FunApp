@@ -19,6 +19,7 @@ using FunApp.Services.DataServices;
 using FunApp.Services.Mapping;
 using FunApp.Services.Models.Home;
 using FunApp.Web.Models.Jokes;
+using FunApp.Services.MachineLearning;
 
 namespace FunApp.Web
 {
@@ -68,6 +69,7 @@ namespace FunApp.Web
             services.AddScoped(typeof(IRepository<>), typeof(DbRepository<>));
             services.AddScoped<IJokeService, JokeService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IJokesCategorizer, JokesCategorizer>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

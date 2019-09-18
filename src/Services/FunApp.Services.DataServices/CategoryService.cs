@@ -29,6 +29,11 @@ namespace FunApp.Services.DataServices
             return categories;
         }
 
+        public Category GetCategoryByName(string categoryName)
+        {
+            return this.repository.All().FirstOrDefault(e => e.Name == categoryName)??null;
+        }
+
         public bool IsCategoryIdValid(int categoryId)
         {
             return this.repository.All().Any(a => a.Id == categoryId);

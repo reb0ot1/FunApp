@@ -18,12 +18,15 @@
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
+                <label asp-for="CategoryId" class="control-label">Category name</label>
                 <select asp-for="CategoryId" class="form-control" asp-items="categories"></select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+            <div id="suggestedCategory">
+                </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-default" />
+                <input type="submit" value="Create" class="btn btn-info"/>
+                <input id="CategorizeButton" value="Categorize joke" class="btn btn-default"/>
             </div>
         </form>
     </div>
@@ -35,4 +38,20 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        var joke = $("#CategorizeButton").click(function () {
+            var joke = $("#Content").val();
+
+            $.ajax({
+                type: "POST",
+                url: "/Jokes/SuggestCategory",
+                data: { joke: joke },
+                success: function (data) {
+                    $("#SuggestedCategory").html("Suggested category: " + data.name);
+                    $("#CategoryId").val(data.id);
+                }
+            })
+        })
+    </script>
 }

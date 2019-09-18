@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using FunApp.Services.DataServices;
+using FunApp.Services.MachineLearning;
+using FunApp.Web.Models.Category;
 using FunApp.Web.Models.Jokes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,15 +12,18 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FunApp.Web.Controllers
 {
+    
     public class JokesController : BaseController
     {
         private readonly IJokeService jokeService;
         private readonly ICategoryService categoryService;
+        private readonly IJokesCategorizer jokeCategorizerService;
 
-        public JokesController(IJokeService js, ICategoryService cs)
+        public JokesController(IJokeService js, ICategoryService cs, IJokesCategorizer jc)
         {
             this.jokeService = js;
             this.categoryService = cs;
+            this.jokeCategorizerService = jc;
         }
 
         [Authorize]
@@ -55,6 +60,21 @@ namespace FunApp.Web.Controllers
         public IActionResult View(int id)
         {
             return this.View();
+        }
+
+        [Authorize]
+        [HttpPost]
+        public SpecializedCategory SuggestCategory(string joke)
+        {
+            var categorizedCategory = this.jokeCategorizerService.Categorize("MlModels/JokesCategoryModel.zip", joke);
+            var category = this.categoryService.GetCategoryByName(categorizedCategory);
+
+            var result = new SpecializedCategory {
+                Id = category?.Id??0,
+                Name = categorizedCategory,
+            };
+
+            return result;
         }
     }
 }
